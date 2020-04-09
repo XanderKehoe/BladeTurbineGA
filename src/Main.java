@@ -3,84 +3,117 @@ import java.util.Random;
 
 public class Main {
 
-	static int N = 10000;
-	static float mutationRate = 0.05f;
-	static float mutationAmount = 0.1f;
+	static int N = 50;
+	static int firstGenSurplus = 30000;
+	static float mutationRate = 0.15f;
+	static float mutationAmount = 0.25f;
 	
+	static int generation = 0;
+	
+	/*
+	public static void main(String[] args) {
+		TurbineBlade test1 = new TurbineBlade(2.7, 
+				  								0.09,
+				  								0.62, 
+				  								15, 
+				  								10,
+				  								25,
+				  								true);
+		
+		System.out.println(test1.toString());
+	}
+}
+*/
 	public static void main(String[] args) {
 		Random rand = new Random();
 		ArrayList<TurbineBlade> turbineBladeList = new ArrayList<TurbineBlade>();
 		
-		//random bestBlade to beginWith
-		bestBlade = new TurbineBlade(rand.nextFloat(), //random diameter
-									  rand.nextFloat(), //random root_coord
-									  rand.nextFloat(), //random tip_coord
-									  rand.nextInt(10), //random number_of_blades
-									  rand.nextFloat(), //random root_angle
-									  rand.nextFloat(), //random tip_angle
-									  true);
-		
 		//step #1, initialize
-		for (int i = 0; i < N; i++) {
-			turbineBladeList.add(new TurbineBlade(rand.nextFloat(), //random diameter
-												  rand.nextFloat(), //random root_coord
-												  rand.nextFloat(), //random tip_coord
-												  rand.nextInt(10), //random number_of_blades
-												  rand.nextFloat(), //random root_angle
-												  rand.nextFloat(), //random tip_angle
-												  true));
+		while (turbineBladeList.size() < N + firstGenSurplus) {
+			TurbineBlade newBlade = new TurbineBlade(1.5 + rand.nextFloat() * 1.5, //random diameter
+												  .01 + rand.nextFloat() * .19, //random root_coord
+												  .02 + rand.nextFloat() * .58, //random tip_coord
+												  1 + rand.nextInt(14) , //random number_of_blades
+												  1 + rand.nextFloat() * 19, //random root_angle
+												  15 + rand.nextFloat() * 20, //random tip_angle
+												  true);
+			if (newBlade.getCalculatedFitness() != 0) {
+				turbineBladeList.add(newBlade);
+				newBlade.toString();
+				System.out.println("Initialization: " + ((float) turbineBladeList.size() / (float) (N + firstGenSurplus)) + " | "+newBlade.diameter);
+			}
 		}
 		
-		
+		System.out.println("REEEEE #1");
 		while (true) {
 			//Step #3(inbetween a and b???)(a.2???) "Elitism"
 			
-			float bestFitness = 0;
+			double bestFitness = 0;
 			int bestIndex = 0;
 			for (int i = 0; i < N; i++) {
-				float thisFitness = turbineBladeList.get(i).getCalculatedFitness();
+				double thisFitness = turbineBladeList.get(i).getCalculatedFitness();
 				if (thisFitness > bestFitness) {
 					bestFitness = thisFitness;
 					bestIndex = i;
 				}
 			}
+			System.out.println("REEEEE #2");
 			
 			ArrayList<TurbineBlade> newTurbineBladeList = new ArrayList<TurbineBlade>(); //new population for step #3(d)
 			TurbineBlade bestBlade = turbineBladeList.get(bestIndex);
 			newTurbineBladeList.add(bestBlade);
 			
-			System.out.println("Best Fitness This Generation: "+bestFitness);
+			System.out.println("Best Fitness This Generation: "+bestFitness+ " | "+bestBlade.getThrust()+" | "+bestBlade.getTorque() + " - " +(bestBlade.getTorque() < (.3 * 4.448f) / 37.39f));
+			System.out.println("Best Blade: \n" + bestBlade.toString());
 			
 			//Step #2 and #3 combined
-			for (int i = 1; i < N; i++) { //i starts at 1 to make room for bestBlade (start at 2 in MatLab for 0 based indexing)
+			while (newTurbineBladeList.size() < N) { //i starts at 1 to make room for bestBlade (start at 2 in MatLab for 0 based indexing)
 				//pick parents
 				TurbineBlade parent1 = chooseOnWeight(turbineBladeList);
 				TurbineBlade parent2 = chooseOnWeight(turbineBladeList);
 				
+				//System.out.println("\tparent1 D: "+parent1.diameter);
+				//System.out.println("\tparent2 D: "+parent2.diameter);
+				
 				//Step #3(b) Crossover
 				TurbineBlade child = crossover(parent1, parent2);
+				
+				//System.out.println("\tchild(AC) D: "+child.diameter);
 				
 				//Step #3(c) Mutation
 				child = mutate(child);
 				
+				//System.out.println("\tchild(AM) D: "+child.diameter);
+				
 				//Step #3(d) add child to new population
-				newTurbineBladeList.add(child);
+				if (child.getCalculatedFitness() != 0) {
+					newTurbineBladeList.add(child);
+					//System.out.println("Reproduction: " + ((float) newTurbineBladeList.size() / (float) (N)));
+				}
+				else {
+					//System.out.println("Failed Production: "+child.toString());
+				}
 			}
 			
+			System.out.println("REEEEE #3");
+			
 			//Step #4 replace old pop with new pop
+			System.out.println("New Gen ["+generation+"]: ");
 			turbineBladeList = newTurbineBladeList;
+			generation++;
+			
 		}
 	}
 	
 	public static TurbineBlade crossover(TurbineBlade parent1, TurbineBlade parent2) {
 		Random rand = new Random();
-		float diameter;
-		float root_coord;
-		float tip_coord;
+		double diameter;
+		double root_coord;
+		double tip_coord;
 
 		int number_of_blades;
-		float root_angle;
-		float tip_angle;
+		double root_angle;
+		double tip_angle;
 		
 		if (rand.nextBoolean()) //pick either parent1 or parent2
 			diameter = parent1.diameter;
@@ -117,13 +150,13 @@ public class Main {
 	
 	public static TurbineBlade mutate(TurbineBlade thisTurbineBlade) {
 		Random rand = new Random();
-		float diameter = thisTurbineBlade.diameter;
-		float root_coord = thisTurbineBlade.root_coord;
-		float tip_coord = thisTurbineBlade.tip_coord;
+		double diameter = thisTurbineBlade.diameter;
+		double root_coord = thisTurbineBlade.root_coord;
+		double tip_coord = thisTurbineBlade.tip_coord;
 
 		int number_of_blades = thisTurbineBlade.number_of_blades;
-		float root_angle = thisTurbineBlade.root_angle;
-		float tip_angle = thisTurbineBlade.tip_angle;
+		double root_angle = thisTurbineBlade.root_angle;
+		double tip_angle = thisTurbineBlade.tip_angle;
 		
 		if (rand.nextFloat() < mutationRate) {
 			if (rand.nextBoolean()) //pick to add or subtract
@@ -147,6 +180,7 @@ public class Main {
 		}
 		
 		if (rand.nextFloat() < mutationRate) {
+			//System.out.println("MUTATING NOB!");
 			if (rand.nextBoolean()) //pick to add or subtract
 				number_of_blades += rand.nextFloat() * (number_of_blades * mutationAmount);
 			else
@@ -167,6 +201,16 @@ public class Main {
 				tip_angle -= rand.nextFloat() * (tip_angle * mutationAmount);
 		}
 		
+		//making sure certain values do not dip into impossible range
+		if (diameter > MyMath.convertToMeters(3)) diameter = MyMath.convertToMeters(3);
+		if (root_coord > MyMath.convertToMeters(.2)) root_coord = MyMath.convertToMeters(.2);
+		if (tip_coord > MyMath.convertToMeters(.6)) tip_coord = MyMath.convertToMeters(.6);
+		if (root_angle > 40) root_angle = 40;
+		if (tip_angle < 5) tip_angle = 5;
+		if (tip_angle > 35) tip_angle = 35;
+		if (number_of_blades < 1) number_of_blades = 1;
+		if (number_of_blades > 15) number_of_blades = 15;
+		
 		return new TurbineBlade(diameter, root_coord, tip_coord, number_of_blades, root_angle, tip_angle, false);
 	}
 	
@@ -186,3 +230,16 @@ public class Main {
     }
 
 }
+
+
+
+/*
+//random bestBlade to beginWith
+bestBlade = new TurbineBlade(rand.nextFloat(), //random diameter
+							  rand.nextFloat(), //random root_coord
+							  rand.nextFloat(), //random tip_coord
+							  rand.nextInt(10), //random number_of_blades
+							  rand.nextFloat(), //random root_angle
+							  rand.nextFloat(), //random tip_angle
+							  true);
+*/
