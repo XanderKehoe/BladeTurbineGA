@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 
 public class TurbineBlade {
+	//Input parameters
 	double diameter;
 	double root_coord;
 	double tip_coord;
@@ -8,25 +9,22 @@ public class TurbineBlade {
 	double root_angle;
 	double tip_angle;
 	
+	//Constants
 	final double density = 1.225f;
 	final double hub_diameter = 0.4f / 39.37f; //change this value here to how see fit
 	final double b = .02;
 	final double rpm = 19000;
 	
-	double this_fitness;
-	
 	ArrayList<Double> r;
-	
-	//base fitness upon: highest thrust, least amount of torque
 	
 	//constructor
 	public TurbineBlade(double diameter, double root_coord, double tip_coord,
 				int number_of_blades, double root_angle, double tip_angle, boolean convert) {
 		if (convert) {
 			//convert inches to meters
-			this.diameter = diameter / 39.37f;
-			this.root_coord = root_coord / 39.37f;
-			this.tip_coord = tip_coord / 39.37f;
+			this.diameter = MyMath.convertToMeters(diameter);
+			this.root_coord = MyMath.convertToMeters(root_coord);
+			this.tip_coord = MyMath.convertToMeters(tip_coord);
 		}
 		else {
 			this.diameter = diameter;
@@ -52,49 +50,28 @@ public class TurbineBlade {
 		double torque = getRequiredTorque();
 		
 		double fitness;
-		float someConstant1 = 10; //feel free to change these
+		float someConstant1 = 1; //feel free to change these
 		float someConstant2 = 1;
 		
 		if (torque < (.3 * 4.448) / 39.37) {
-			//ideal ratio between thrust and torque?
 			fitness = 1 + (thrust * someConstant1); //feel free to change this equation to how you see fit
-			fitness *= fitness; //squaring fitness
-			
+			fitness *= fitness; //squaring fitness for more biased reproduction
 		}
 		else {
-			//torque was too high, don't consider; OR JUST MAKE SUPER LOW??
 			//fitness = thrust / Math.pow(1 + torque, 10);
 			fitness = 0;
 		}
-		
-		this.this_fitness = fitness;
-		
-		if (Double.isNaN(fitness)) {
-			System.out.println("NaN Fitness: ");
-			System.out.println(this.toString());
-		}
-		
-		
 		
 		return fitness;
 	}
 	
 	public double getThrust() {
-		//insert calculations to get thrust here
 		ArrayList<Double> thrst_grdnt = getThrstGrdnt();
 		Double thrust = MyMath.integrate(thrst_grdnt, r);
-		/*
-		if (thrust == 0) {
-			System.out.println("ZERO THRUST: ");
-			System.out.println("\t"+thrst_grdnt.toString());
-			System.out.println("\t"+thrust);
-		}
-		*/
 		return thrust;
 	}
 	
 	public double getTorque() {
-		//insert calculations to get torque here
 		ArrayList<Double> trq_grdnt = getTrqGrdnt();
 		Double torque = MyMath.integrate(trq_grdnt, r);	
 		return torque;
@@ -132,21 +109,6 @@ public class TurbineBlade {
 		return trq_grdnt;
 	}
 	
-	/*
-	private ArrayList<Double> getRequiredTrqGrdnt(){
-		int slices = r.size();
-		ArrayList<Double> coord_lengths = MyMath.linspace(root_coord, tip_coord, slices); //cross section length(s)
-		ArrayList<Double> VR = getRelativeVelocity();
-		ArrayList<Double> q = get_q();
-		ArrayList<Double> trq_grdnt = new ArrayList<Double>();
-		
-		for (int i = 0; i < slices; i++)
-			trq_grdnt.add(2 * (Math.pow(Math.PI, 2) * density * CD * B (())));
-		
-		return trq_grdnt;
-	}
-	*/
-	
 	private ArrayList<Double> get_t() {
 		ArrayList<Double> chi = getAngles();
 		ArrayList<Double> ret = new ArrayList<Double>();
@@ -182,8 +144,8 @@ public class TurbineBlade {
 		ArrayList<Double> coord_lengths = MyMath.linspace(root_coord, tip_coord, slices); //cross section length(s)
 		
 		for (int i = 0; i < r.size(); i++) {
-			double CL = -.0008 * Math.pow(chi.get(i), 2) + .0724 * chi.get(i) + 1.0141;
-			double CD = .091 * Math.exp(.0667 * chi.get(i));
+			double CL = -.0008 * Math.pow(chi.get(i), 2) + .0724 * chi.get(i) + 1.0141; //coefficient of lift equation
+			double CD = .091 * Math.exp(.0667 * chi.get(i)); //coefficient of drag equation
 			
 			ret.add(2 * (Math.pow(Math.PI, 2)) * density * CD * number_of_blades * (Math.pow(rpm/60, 2)) * coord_lengths.get(i) * Math.pow(r.get(i), 3));
 		}
@@ -201,7 +163,7 @@ public class TurbineBlade {
 		return ret;
 	}
 	
-	public double getBladeLength() {
+	private double getBladeLength() {
 		return (this.diameter / 2) - (this.hub_diameter / 2);
 	}
 	

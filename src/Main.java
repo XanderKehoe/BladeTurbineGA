@@ -3,27 +3,13 @@ import java.util.Random;
 
 public class Main {
 
-	static int N = 50;
-	static int firstGenSurplus = 30000;
-	static float mutationRate = 0.15f;
-	static float mutationAmount = 0.25f;
+	static int N = 100;
+	static int firstGenSurplus = 1000000;
+	static float mutationRate = 0.05f;
+	static float mutationAmount = 0.1f;
 	
 	static int generation = 0;
 	
-	/*
-	public static void main(String[] args) {
-		TurbineBlade test1 = new TurbineBlade(2.7, 
-				  								0.09,
-				  								0.62, 
-				  								15, 
-				  								10,
-				  								25,
-				  								true);
-		
-		System.out.println(test1.toString());
-	}
-}
-*/
 	public static void main(String[] args) {
 		Random rand = new Random();
 		ArrayList<TurbineBlade> turbineBladeList = new ArrayList<TurbineBlade>();
@@ -44,7 +30,6 @@ public class Main {
 			}
 		}
 		
-		System.out.println("REEEEE #1");
 		while (true) {
 			//Step #3(inbetween a and b???)(a.2???) "Elitism"
 			
@@ -57,7 +42,6 @@ public class Main {
 					bestIndex = i;
 				}
 			}
-			System.out.println("REEEEE #2");
 			
 			ArrayList<TurbineBlade> newTurbineBladeList = new ArrayList<TurbineBlade>(); //new population for step #3(d)
 			TurbineBlade bestBlade = turbineBladeList.get(bestIndex);
@@ -72,30 +56,16 @@ public class Main {
 				TurbineBlade parent1 = chooseOnWeight(turbineBladeList);
 				TurbineBlade parent2 = chooseOnWeight(turbineBladeList);
 				
-				//System.out.println("\tparent1 D: "+parent1.diameter);
-				//System.out.println("\tparent2 D: "+parent2.diameter);
-				
 				//Step #3(b) Crossover
 				TurbineBlade child = crossover(parent1, parent2);
-				
-				//System.out.println("\tchild(AC) D: "+child.diameter);
 				
 				//Step #3(c) Mutation
 				child = mutate(child);
 				
-				//System.out.println("\tchild(AM) D: "+child.diameter);
-				
 				//Step #3(d) add child to new population
-				if (child.getCalculatedFitness() != 0) {
+				if (child.getCalculatedFitness() != 0)
 					newTurbineBladeList.add(child);
-					//System.out.println("Reproduction: " + ((float) newTurbineBladeList.size() / (float) (N)));
-				}
-				else {
-					//System.out.println("Failed Production: "+child.toString());
-				}
 			}
-			
-			System.out.println("REEEEE #3");
 			
 			//Step #4 replace old pop with new pop
 			System.out.println("New Gen ["+generation+"]: ");
@@ -180,7 +150,6 @@ public class Main {
 		}
 		
 		if (rand.nextFloat() < mutationRate) {
-			//System.out.println("MUTATING NOB!");
 			if (rand.nextBoolean()) //pick to add or subtract
 				number_of_blades += rand.nextFloat() * (number_of_blades * mutationAmount);
 			else
