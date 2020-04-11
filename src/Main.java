@@ -4,9 +4,9 @@ import java.util.Random;
 public class Main {
 
 	static int N = 100;
-	static int firstGenSurplus = 1000000;
+	static int firstGenSurplus = 1000;
 	static float mutationRate = 0.05f;
-	static float mutationAmount = 0.1f;
+	static float mutationAmount = 0.15f;
 	
 	static int generation = 0;
 	
@@ -16,12 +16,12 @@ public class Main {
 		
 		//step #1, initialize
 		while (turbineBladeList.size() < N + firstGenSurplus) {
-			TurbineBlade newBlade = new TurbineBlade(1.5 + rand.nextFloat() * 1.5, //random diameter
-												  .01 + rand.nextFloat() * .19, //random root_coord
-												  .02 + rand.nextFloat() * .58, //random tip_coord
-												  1 + rand.nextInt(14) , //random number_of_blades
-												  1 + rand.nextFloat() * 19, //random root_angle
-												  15 + rand.nextFloat() * 20, //random tip_angle
+			TurbineBlade newBlade = new TurbineBlade(Limits.min_diameter + rand.nextFloat() * (Limits.max_diameter - Limits.min_diameter), //random diameter
+													Limits.min_root_coord + rand.nextFloat() * (Limits.max_root_coord - Limits.min_root_coord), //random root_coord
+													Limits.min_tip_coord + rand.nextFloat() * (Limits.max_tip_coord - Limits.min_tip_coord), //random tip_coord
+													(int) (Limits.min_number_of_blades + rand.nextFloat() * (Limits.max_number_of_blades - Limits.min_number_of_blades)) , //random number_of_blades
+													Limits.min_root_angle + rand.nextFloat() * (Limits.max_root_angle - Limits.min_root_angle), //random root_angle
+													Limits.min_tip_angle + rand.nextFloat() * (Limits.max_tip_angle - Limits.min_tip_angle), //random tip_angle
 												  true);
 			if (newBlade.getCalculatedFitness() != 0) {
 				turbineBladeList.add(newBlade);
@@ -31,7 +31,7 @@ public class Main {
 		}
 		
 		while (true) {
-			//Step #3(inbetween a and b???)(a.2???) "Elitism"
+			//Elitism
 			
 			double bestFitness = 0;
 			int bestIndex = 0;
@@ -47,7 +47,7 @@ public class Main {
 			TurbineBlade bestBlade = turbineBladeList.get(bestIndex);
 			newTurbineBladeList.add(bestBlade);
 			
-			System.out.println("Best Fitness This Generation: "+bestFitness+ " | "+bestBlade.getThrust()+" | "+bestBlade.getTorque() + " - " +(bestBlade.getTorque() < (.3 * 4.448f) / 37.39f));
+			System.out.println("Best Fitness This Generation: "+bestBlade.getCalculatedFitness()+ " | "+bestBlade.getThrust()+" | "+bestBlade.getTorque() + " - " +(bestBlade.getTorque() < (.3 * 4.448f) / 37.39f));
 			System.out.println("Best Blade: \n" + bestBlade.toString());
 			
 			//Step #2 and #3 combined
@@ -171,14 +171,14 @@ public class Main {
 		}
 		
 		//making sure certain values do not dip into impossible range
-		if (diameter > MyMath.convertToMeters(3)) diameter = MyMath.convertToMeters(3);
-		if (root_coord > MyMath.convertToMeters(.2)) root_coord = MyMath.convertToMeters(.2);
-		if (tip_coord > MyMath.convertToMeters(.6)) tip_coord = MyMath.convertToMeters(.6);
-		if (root_angle > 40) root_angle = 40;
-		if (tip_angle < 5) tip_angle = 5;
-		if (tip_angle > 35) tip_angle = 35;
-		if (number_of_blades < 1) number_of_blades = 1;
-		if (number_of_blades > 15) number_of_blades = 15;
+		if (diameter > MyMath.convertToMeters(Limits.max_diameter)) diameter = MyMath.convertToMeters(Limits.max_diameter);
+		if (root_coord > MyMath.convertToMeters(Limits.max_root_coord)) root_coord = MyMath.convertToMeters(Limits.max_root_coord);
+		if (tip_coord > MyMath.convertToMeters(Limits.max_tip_coord)) tip_coord = MyMath.convertToMeters(Limits.max_tip_coord);
+		if (root_angle > Limits.max_root_angle) root_angle = Limits.max_root_angle;
+		if (tip_angle < Limits.min_tip_angle) tip_angle = Limits.min_tip_angle;
+		if (tip_angle > Limits.max_tip_angle) tip_angle = Limits.max_tip_angle;
+		if (number_of_blades < Limits.min_number_of_blades) number_of_blades = Limits.min_number_of_blades;
+		if (number_of_blades > Limits.max_number_of_blades) number_of_blades = Limits.max_number_of_blades;
 		
 		return new TurbineBlade(diameter, root_coord, tip_coord, number_of_blades, root_angle, tip_angle, false);
 	}
@@ -199,16 +199,3 @@ public class Main {
     }
 
 }
-
-
-
-/*
-//random bestBlade to beginWith
-bestBlade = new TurbineBlade(rand.nextFloat(), //random diameter
-							  rand.nextFloat(), //random root_coord
-							  rand.nextFloat(), //random tip_coord
-							  rand.nextInt(10), //random number_of_blades
-							  rand.nextFloat(), //random root_angle
-							  rand.nextFloat(), //random tip_angle
-							  true);
-*/

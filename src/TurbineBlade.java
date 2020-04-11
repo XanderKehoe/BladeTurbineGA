@@ -11,7 +11,7 @@ public class TurbineBlade {
 	
 	//Constants
 	final double density = 1.225f;
-	final double hub_diameter = 0.4f / 39.37f; //change this value here to how see fit
+	final double hub_diameter = 0.6f / 39.37f; //change this value here to how see fit
 	final double b = .02;
 	final double rpm = 19000;
 	
